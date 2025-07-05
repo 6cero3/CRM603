@@ -6,17 +6,8 @@ Sistema CRM en PHP y MySQL. Preparado para instalarse en `www.6cero3.com/crm`.
 
 1. Copiar todos los archivos al directorio `crm` de tu hosting.
 2. Crear una base de datos MySQL y actualizar las credenciales en `config/conexion.php`.
-3. Importar el siguiente esquema básico:
-
-```sql
-CREATE TABLE usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    correo VARCHAR(100) UNIQUE,
-    clave VARCHAR(255),
-    rol ENUM('admin','colaborador','general')
-);
-```
+3. Importar el archivo `crm.sql` incluido en este repositorio para crear todas
+   las tablas necesarias del CRM.
 
 4. Acceder a `www.tudominio.com/crm` y crear el primer usuario manualmente en la base de datos con la función `password_hash`.
 
