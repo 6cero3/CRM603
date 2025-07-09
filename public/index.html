@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zacapu Escucha - Reporte Ciudadano</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<div id="root"></div>
+<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script type="text/babel">
+function App() {
+  const [form, setForm] = React.useState({type:'', anonymous:false, name:'', contact:'', description:'', lat:'', lng:'', evidence:null});
+  const [message, setMessage] = React.useState('');
+  const handleChange = e => {
+    const {name, value, type, checked, files} = e.target;
+    if(type === 'checkbox') {
+      setForm({...form, [name]: checked});
+    } else if(type === 'file') {
+      setForm({...form, evidence: files[0]});
+    } else {
+      setForm({...form, [name]: value});
+    }
+  };
+  const captureLocation = () => {
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        setForm({...form, lat: pos.coords.latitude, lng: pos.coords.longitude});
+      });
+    }
+  };
+  const handleSubmit = e => {
+    e.preventDefault();
+    const data = new FormData();
+    Object.entries(form).forEach(([k,v])=>{ if(v!==null) data.append(k,v); });
+    fetch('/api/report_submit.php',{method:'POST', body:data})
+      .then(res=>res.json())
+      .then(r=>{ if(r.success){ setMessage('Reporte enviado. Folio: '+r.folio); } else { setMessage('Error'); } })
+      .catch(()=>setMessage('Error al enviar'));
+  };
+  return (
+    <div className="max-w-xl mx-auto p-4">
+      <h1 className="text-2xl mb-4 text-center text-red-700">Zacapu Escucha</h1>
+      {message && <div className="p-2 bg-green-200 mb-4">{message}</div>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block mb-1">Tipo de Reporte</label>
+          <select name="type" className="w-full border p-2" value={form.type} onChange={handleChange} required>
+            <option value="">Seleccione...</option>
+            <option>Queja</option>
+            <option>Sugerencia</option>
+            <option>Reporte Ciudadano</option>
+            <option>Reporte Policiaco</option>
+            <option>Corrupción</option>
+            <option>Basura</option>
+            <option>Fuga de Agua</option>
+          </select>
+        </div>
+        <div className="flex items-center">
+          <input type="checkbox" id="anonymous" name="anonymous" className="mr-2" checked={form.anonymous} onChange={handleChange}/>
+          <label htmlFor="anonymous">Enviar de forma anónima</label>
+        </div>
+        {!form.anonymous && (
+          <>
+          <div>
+            <label className="block mb-1">Nombre Completo</label>
+            <input type="text" name="name" className="w-full border p-2" value={form.name} onChange={handleChange}/>
+          </div>
+          <div>
+            <label className="block mb-1">Teléfono o Email</label>
+            <input type="text" name="contact" className="w-full border p-2" value={form.contact} onChange={handleChange}/>
+          </div>
+          </>
+        )}
+        <div>
+          <label className="block mb-1">Descripción</label>
+          <textarea name="description" className="w-full border p-2" value={form.description} onChange={handleChange} required></textarea>
+        </div>
+        <div>
+          <button type="button" onClick={captureLocation} className="bg-gray-200 px-3 py-1 mr-2">Capturar Ubicación</button>
+          {form.lat && <span className="text-sm">Lat: {form.lat.toFixed(4)}, Lng: {form.lng.toFixed(4)}</span>}
+        </div>
+        <div>
+          <label className="block mb-1">Evidencia (foto/video)</label>
+          <input type="file" name="evidence" accept="image/*,video/*" onChange={handleChange}/>
+        </div>
+        <button className="bg-red-700 text-white px-4 py-2" type="submit">Enviar Reporte</button>
+      </form>
+    </div>
+  );
+}
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
